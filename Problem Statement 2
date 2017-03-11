@@ -1,0 +1,60 @@
+2. Access the customer hbase table from pig and compute the maximum and minimum age among all the customers along
+with their corresponding name and id
+
+LOAD FROM HBASE
+----------------
+Open HBASE in terminal 1
+-----------------------------
+hbase(main):051:0> scan 'customer'
+ROW                   COLUMN+CELL                                               
+ 1                    column=details:age, timestamp=1489243981190, value=18     
+ 1                    column=details:location, timestamp=1489243974081, value=IN
+                      D                                                         
+ 1                    column=details:name, timestamp=1489243964322, value=Amit  
+ 2                    column=details:age, timestamp=1489244101051, value=20     
+ 2                    column=details:location, timestamp=1489244093272, value=PA
+                      K                                                         
+ 2                    column=details:name, timestamp=1489244085868, value=Sumit 
+ 3                    column=details:age, timestamp=1489244179396, value=26     
+ 3                    column=details:location, timestamp=1489244172790, value=AU
+                      S                                                         
+ 3                    column=details:name, timestamp=1489244107277, value=Rohit 
+ 4                    column=details:age, timestamp=1489244206125, value=24     
+ 4                    column=details:location, timestamp=1489244199768, value=UK
+ 4                    column=details:name, timestamp=1489244192949, value=Namit 
+4 row(s) in 0.1740 seconds
+
+Open Grunt shell in terminal 2
+------------------------------
+
+grunt>data = LOAD 'hbase://customer' USING org.apache.pig.backend.hadoop.hbase.HBaseStorage('details:*','-loadKey true') as (id:int, details:MAP[]);
+grunt>DUMP data;
+
+(1,[name#Amit,location#IND,age#18])
+(2,[name#Sumit,location#PAK,age#20])
+(3,[name#Rohit,location#AUS,age#26])
+(4,[name#Namit,location#UK,age#24])
+grunt> 
+
+
+grunt>result = FOREACH data GENERATE id, details#'name', details#'location', details#'age' as age;
+grunt>DUMP result;
+
+(1,Amit,IND,18)
+(2,Sumit,PAK,20)
+(3,Rohit,AUS,26)
+(4,Namit,UK,24)
+
+grunt>MaxOrder = ORDER result BY age DESC;
+grunt>Maxage = LIMIT MaxOrder 1;
+grunt>DUMP Maxage;
+
+(3,Rohit,AUS,26)
+
+
+grunt>MinOrder = ORDER result BY age ASC;
+grunt>Minage = LIMIT MinOrder 1;
+grunt>DUMP Minage;
+
+(1,Amit,IND,18)
+
