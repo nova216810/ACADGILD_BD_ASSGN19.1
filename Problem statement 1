@@ -1,0 +1,69 @@
+
+1. Create a customer_hive table on the top of 'customer' table created in the last session.
+ Calculate the maximum and minimum age of customer from the table.
+
+External Table has its table structure inside Hive and fetches data from the 'customer' table present in HBASE
+HSABE table: 'customer'
+----------------------
+hbase(main):015:0> scan 'customer'
+ROW                              COLUMN+CELL                                                                                 
+ 1                               column=details:age, timestamp=1489403875520, value=18                                       
+ 1                               column=details:location, timestamp=1489403864475, value=IND                                 
+ 1                               column=details:name, timestamp=1489403854891, value=Amit                                    
+ 2                               column=details:age, timestamp=1489403907839, value=20                                       
+ 2                               column=details:location, timestamp=1489403898091, value=PAK                                 
+ 2                               column=details:name, timestamp=1489403887230, value=Sumit                                   
+ 3                               column=details:age, timestamp=1489403950234, value=26                                       
+ 3                               column=details:location, timestamp=1489403941291, value=AUS                                 
+ 3                               column=details:name, timestamp=1489403915320, value=Rohit                                   
+ 4                               column=details:age, timestamp=1489403990757, value=24                                       
+ 4                               column=details:location, timestamp=1489403972038, value=UK                                  
+ 4                               column=details:name, timestamp=1489403959517, value=Namit                                   
+4 row(s) in 0.5530 seconds
+
+In terminal 2, open HIVE
+Creating Hive table on top of HBASE table customer
+---------------------------------------------------
+hive> 
+    > create external table
+    > customer_hive
+    > (
+    > eid int,fname string,location string,age int
+    > )
+    > STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+    > with serdeproperties
+    > ("hbase.columns.mapping"=":key,details:name,details:location,details:age")
+    > tblproperties("hbase.table.name"="customer");
+OK
+Time taken: 1.3 seconds
+
+
+hive> select * from customer_hive;                    
+OK
+1	Amit	IND	18
+2	Sumit	PAK	20
+3	Rohit	AUS	26
+4	Namit	UK	24
+Time taken: 1.581 seconds, Fetched: 4 row(s)
+
+Calculate the maximum and minimum age of customer from the table.
+----------------------------------------------------------------
+select max(age) from customer_hive;
+
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 8.56 sec   HDFS Read: 254 HDFS Write: 3 SUCCESS
+Total MapReduce CPU Time Spent: 8 seconds 560 msec
+OK
+26
+Time taken: 99.528 seconds, Fetched: 1 row(s)
+
+
+select min(age) from customer_hive;
+
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 7.47 sec   HDFS Read: 254 HDFS Write: 3 SUCCESS
+Total MapReduce CPU Time Spent: 7 seconds 470 msec
+OK
+18
+Time taken: 68.83 seconds, Fetched: 1 row(s)
+
+
+Screenshots attached
